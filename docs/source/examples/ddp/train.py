@@ -17,6 +17,7 @@ def main():
     dist.init_process_group("nccl")
     rank = dist.get_rank()
     local_rank = int(os.environ["LOCAL_RANK"])
+    print(f"Rank {rank} is starting, local rank: {local_rank}")
     torch.cuda.set_device(local_rank)
 
     model = nn.Linear(10, 1).cuda()
