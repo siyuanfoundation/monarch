@@ -1,0 +1,39 @@
+  # gcloud container node-pools create v100-autoscaling-pool \
+  # --cluster sizhang-gpu-cluster-ap \
+  # --region us-central1 \
+  # --project tpu-vm-gke-testing \
+  # --accelerator type=nvidia-tesla-v100,count=2 \
+  # --machine-type n1-standard-16 \
+  # --spot \
+  # --enable-autoscaling \
+  # --min-nodes 3 \
+  # --max-nodes 5 \
+  # --num-nodes 3 \
+  # --quiet
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: v100-2gpu-test
+spec:
+  containers:
+  - name: nvidia-smi
+    image: nvidia/cuda:12.2.0-base-ubuntu22.04
+    command: ["sh", "-c", "nvidia-smi && sleep 60"]
+    resources:
+      limits:
+        nvidia.com/gpu: 2
+      requests:
+        nvidia.com/gpu: 2
+  nodeSelector:
+    cloud.google.com/gke-accelerator: nvidia-tesla-v100
+    cloud.google.com/gke-nodepool: v100-autoscaling-pool
+  # tolerations:
+  # - key: "cloud.google.com/gke-spot"
+  #   operator: "Equal"
+  #   value: "true"
+  #   effect: "NoSchedule"
+  # - key: "nvidia.com/gpu"
+  #   operator: "Exists"
+  #   effect: "NoSchedule"
+  # restartPolicy: Never
