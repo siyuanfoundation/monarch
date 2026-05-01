@@ -1,12 +1,11 @@
-  # gcloud container node-pools create v100-autoscaling-pool \
+  # gcloud container node-pools create a100-autoscaling-pool \
   # --cluster sizhang-ray-gpu \
   # --region us-central1-a \
   # --project tpu-vm-gke-testing \
-  # --accelerator type=nvidia-tesla-v100,count=2 \
-  # --machine-type n1-standard-16 \
+  # --machine-type a2-highgpu-2g \
   # --spot \
   # --enable-autoscaling \
-  # --min-nodes 3 \
+  # --min-nodes 1 \
   # --max-nodes 5 \
   # --num-nodes 3 \
   # --quiet
@@ -14,7 +13,7 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: v100-2gpu-test
+  name: a100-2gpu-test
 spec:
   containers:
   - name: nvidia-smi
@@ -26,8 +25,8 @@ spec:
       requests:
         nvidia.com/gpu: 2
   nodeSelector:
-    cloud.google.com/gke-accelerator: nvidia-tesla-v100
-    cloud.google.com/gke-nodepool: v100-autoscaling-pool
+    cloud.google.com/gke-accelerator: nvidia-tesla-a100
+    cloud.google.com/gke-nodepool: a100-autoscaling-pool
   # tolerations:
   # - key: "cloud.google.com/gke-spot"
   #   operator: "Equal"

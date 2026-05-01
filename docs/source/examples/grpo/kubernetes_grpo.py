@@ -863,9 +863,12 @@ PIP_INSTALL = textwrap.dedent("""\
         sys.executable, "-m", "pip", "install", "--quiet",
         "--break-system-packages",
         "--upgrade",
+        "torch==2.5.1",
+        "torchvision==0.20.1",
         "transformers",
         "tokenizers",
         "accelerate",
+        "--extra-index-url", "https://download.pytorch.org/whl/cu124"
     ])
 """)
 
@@ -889,6 +892,7 @@ def build_pod_template(gpus: int) -> V1PodTemplateSpec:
     """
     bootstrap = PIP_INSTALL + _WORKER_BOOTSTRAP_SCRIPT
     resources = None
+    node_selector = None
     env = [
         V1EnvVar(name="MONARCH_PORT", value="26600"),
         # /tmp/hf_cache forces the Hugging Face cache onto
@@ -907,6 +911,10 @@ def build_pod_template(gpus: int) -> V1PodTemplateSpec:
             limits=gpu_resources,
             requests=gpu_resources,
         )
+        node_selector = {
+            "cloud.google.com/gke-accelerator": "nvidia-tesla-v100",
+            "cloud.google.com/gke-nodepool": "v100-autoscaling-pool",
+        }
         env.insert(
             1,
             V1EnvVar(
@@ -941,7 +949,8 @@ def build_pod_template(gpus: int) -> V1PodTemplateSpec:
                     ],
                 )
             ],
-            volumes=[
+            node_selector=node_selector,
+        volumes=[
                 V1Volume(
                     name="dshm",
                     empty_dir=V1EmptyDirVolumeSource(
@@ -1144,7 +1153,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--gpus_per_generator",
         type=int,
-        default=4,
+        default=2,
         help="GPUs per generator pod; set 0 for CPU",
     )
     parser.add_argument(
