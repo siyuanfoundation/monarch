@@ -863,12 +863,9 @@ PIP_INSTALL = textwrap.dedent("""\
         sys.executable, "-m", "pip", "install", "--quiet",
         "--break-system-packages",
         "--upgrade",
-        "torch==2.5.1",
-        "torchvision==0.20.1",
         "transformers",
         "tokenizers",
         "accelerate",
-        "--extra-index-url", "https://download.pytorch.org/whl/cu124"
     ])
 """)
 
@@ -912,8 +909,8 @@ def build_pod_template(gpus: int) -> V1PodTemplateSpec:
             requests=gpu_resources,
         )
         node_selector = {
-            "cloud.google.com/gke-accelerator": "nvidia-tesla-v100",
-            "cloud.google.com/gke-nodepool": "v100-autoscaling-pool",
+            "cloud.google.com/gke-accelerator": "nvidia-tesla-a100",
+            "cloud.google.com/gke-nodepool": "a100-spot-pool",
         }
         env.insert(
             1,

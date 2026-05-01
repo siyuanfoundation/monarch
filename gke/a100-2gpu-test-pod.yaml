@@ -1,12 +1,9 @@
-  # gcloud container node-pools create a100-autoscaling-pool \
+  # gcloud container node-pools create a100-spot-pool \
   # --cluster sizhang-ray-gpu \
   # --region us-central1-a \
   # --project tpu-vm-gke-testing \
   # --machine-type a2-highgpu-2g \
   # --spot \
-  # --enable-autoscaling \
-  # --min-nodes 1 \
-  # --max-nodes 5 \
   # --num-nodes 3 \
   # --quiet
 
@@ -26,7 +23,7 @@ spec:
         nvidia.com/gpu: 2
   nodeSelector:
     cloud.google.com/gke-accelerator: nvidia-tesla-a100
-    cloud.google.com/gke-nodepool: a100-autoscaling-pool
+    cloud.google.com/gke-nodepool: a100-spot-pool
   # tolerations:
   # - key: "cloud.google.com/gke-spot"
   #   operator: "Equal"
