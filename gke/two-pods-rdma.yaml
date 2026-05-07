@@ -1,0 +1,54 @@
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: two-rdma
+spec:
+  spec:
+    devices:
+      requests:
+      - name: req-mrdma
+        exactly:
+          deviceClassName: mrdma.google.com
+          # Use ExactCount to share the node's RDMA ports across pods.
+          # 'All' would allocate all ports to the first pod.
+          allocationMode: ExactCount
+          count: 2
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rdma-pod-1
+spec:
+  containers:
+  - name: main
+    image: nvidia/cuda:12.2.0-base-ubuntu22.04
+    command: ["sh", "-c", "nvidia-smi && ls /sys/class/net && sleep 3600"]
+    resources:
+      limits:
+        nvidia.com/gpu: 2
+      # The GKE networking DRA driver handles the mapping between GPUs and RDMA NICs.
+      # By requesting 2 GPUs and 2 RDMA ports, the driver ensures the pod
+      # only sees the RDMA ports topologically close to its assigned GPUs.
+      claims:
+      - name: rdma
+  resourceClaims:
+  - name: rdma
+    resourceClaimTemplateName: two-rdma
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: rdma-pod-2
+spec:
+  containers:
+  - name: main
+    image: nvidia/cuda:12.2.0-base-ubuntu22.04
+    command: ["sh", "-c", "nvidia-smi && ls /sys/class/net && sleep 3600"]
+    resources:
+      limits:
+        nvidia.com/gpu: 2
+      claims:
+      - name: rdma
+  resourceClaims:
+  - name: rdma
+    resourceClaimTemplateName: two-rdma

@@ -1,0 +1,38 @@
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: all-mrdma
+spec:
+  spec:
+    devices:
+      requests:
+      - name: req-mrdma
+        exactly:
+          deviceClassName: mrdma.google.com
+          allocationMode: All
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: agnhost-rdma
+  namespace: default
+  labels:
+    app: agnhost
+spec:
+  containers:
+  - name: agnhost
+    image: registry.k8s.io/e2e-test-images/agnhost:2.39
+    args: ["netexec", "--http-port", "80"]
+    ports:
+    - name: agnhost-port
+      containerPort: 80
+    resources:
+      claims:
+      - name: rdma
+      limits:
+        nvidia.com/gpu: 1
+  resourceClaims:
+  - name: rdma
+    resourceClaimTemplateName: all-mrdma
+
+# kubectl exec agnhost-rdma -- ls /sys/class/net
