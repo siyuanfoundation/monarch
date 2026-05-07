@@ -71,6 +71,9 @@ Running the example
 
 ::
 
+    # Install the Monarch operator and CRD if not already present
+    kubectl apply -f https://raw.githubusercontent.com/meta-pytorch/monarch-kubernetes/main/operator/dist/install.yaml
+
     kubectl apply -f manifests/grpo_provision.yaml
     kubectl wait --for=condition=Ready pod/grpo-controller -n monarch-tests
     kubectl cp kubernetes_grpo.py monarch-tests/grpo-controller:/tmp/kubernetes_grpo.py
@@ -145,9 +148,11 @@ from kubernetes.client import (
     V1Container,
     V1EmptyDirVolumeSource,
     V1EnvVar,
+    V1PodResourceClaim,
     V1PodSpec,
     V1PodTemplateSpec,
     V1Probe,
+    CoreV1ResourceClaim,
     V1ResourceRequirements,
     V1TCPSocketAction,
     V1Volume,
@@ -159,12 +164,10 @@ from monarch.job.kubernetes import KubernetesJob
 from monarch.rdma import RDMABuffer
 
 # %%
-# Cross-pod RDMABuffer reads use TCP fallback by default on clusters without
-# an RDMA CNI. Also extend supervision / spawn-idle timeouts so large model
-# loads inside actor __init__ (which block the event loop for tens of
-# seconds) don't get killed by the default 60s liveness watchdog.
+# Extend supervision / spawn-idle timeouts so large model loads inside actor
+# __init__ (which block the event loop for tens of seconds) don't get killed
+# by the default 60s liveness watchdog.
 monarch.configure(
-    rdma_allow_tcp_fallback=True,
     actor_spawn_max_idle="10m",
     get_proc_state_max_idle="10m",
     supervision_watchdog_timeout="10m",
@@ -870,7 +873,7 @@ PIP_INSTALL = textwrap.dedent("""\
 """)
 
 
-def build_pod_template(gpus: int) -> V1PodTemplateSpec:
+def build_pod_template(gpus: int, rdma_template: Optional[str] = None) -> V1PodTemplateSpec:
     """Shared pod template for learner and generator meshes.
 
     Prepends a pip-install prefix to the Monarch worker bootstrap so that
@@ -902,16 +905,25 @@ def build_pod_template(gpus: int) -> V1PodTemplateSpec:
         # hammer the HF Hub.
         V1EnvVar(name="HF_HOME", value="/tmp/hf_cache"),
     ]
+    resource_claims = []
+    claims = []
     if gpus > 0:
+        if rdma_template:
+            # The GKE networking DRA driver ensures that the RDMA ports
+            # assigned to the pod are topologically aligned with its GPUs.
+            resource_claims = [
+                V1PodResourceClaim(
+                    name="rdma", resource_claim_template_name=rdma_template
+                )
+            ]
+            claims = [CoreV1ResourceClaim(name="rdma")]
+
         gpu_resources = {"nvidia.com/gpu": str(gpus)}
         resources = V1ResourceRequirements(
             limits=gpu_resources,
             requests=gpu_resources,
+            claims=claims if claims else None,
         )
-        node_selector = {
-            "cloud.google.com/gke-accelerator": "nvidia-tesla-a100",
-            "cloud.google.com/gke-nodepool": "a100-spot-pool",
-        }
         env.insert(
             1,
             V1EnvVar(
@@ -947,6 +959,7 @@ def build_pod_template(gpus: int) -> V1PodTemplateSpec:
                 )
             ],
             node_selector=node_selector,
+        resource_claims=resource_claims if resource_claims else None,
         volumes=[
                 V1Volume(
                     name="dshm",
@@ -998,6 +1011,7 @@ async def main(
     dataset_split: str,
     num_prompts: int,
     eval_size: int,
+    rdma_template: Optional[str] = None,
 ) -> None:
     """Run GRPO fine-tuning across the learner and generator meshes."""
     prompts = load_gsm8k_prompts(split=dataset_split, num_prompts=num_prompts)
@@ -1011,6 +1025,8 @@ async def main(
     print(f"Namespace: {namespace} | Training steps: {training_steps}")
     print(f"Dataset: openai/gsm8k[{dataset_split}] ({len(prompts)} prompts)")
     print(f"Eval: openai/gsm8k[test] ({len(eval_prompts)} prompts)")
+    if rdma_template:
+        print(f"RDMA Claim Template: {rdma_template}")
     print("=" * 60)
 
     # 600s timeout lets the meshes finish cold-start pip install + model
@@ -1025,12 +1041,14 @@ async def main(
     k8s_job.add_mesh(
         "learner",
         num_replicas=1,
-        pod_template=build_pod_template(gpus=2),
+        pod_template=build_pod_template(gpus=2, rdma_template=rdma_template),
     )
     k8s_job.add_mesh(
         "generator",
         num_replicas=num_generator_hosts,
-        pod_template=build_pod_template(gpus=gpus_per_generator),
+        pod_template=build_pod_template(
+            gpus=gpus_per_generator, rdma_template=rdma_template
+        ),
     )
 
     learner_mesh = None
@@ -1183,6 +1201,12 @@ if __name__ == "__main__":
         default=512,
         help="Number of held-out GSM8K test prompts used for eval.",
     )
+    parser.add_argument(
+        "--rdma_template",
+        type=str,
+        default="two-rdma",
+        help="Name of the ResourceClaimTemplate for RDMA (e.g. 'two-rdma')",
+    )
     args = parser.parse_args()
     asyncio.run(
         main(
@@ -1194,5 +1218,6 @@ if __name__ == "__main__":
             dataset_split=args.dataset_split,
             num_prompts=args.num_prompts,
             eval_size=args.eval_size,
+            rdma_template=args.rdma_template,
         )
     )

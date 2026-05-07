@@ -10,7 +10,8 @@
 # No worker pod YAML manifests are needed.
 #
 # Prerequisites:
-# - Kubernetes cluster with Monarch operator installed
+# - Kubernetes cluster with Monarch operator installed:
+#   kubectl apply -f https://raw.githubusercontent.com/meta-pytorch/monarch-kubernetes/main/operator/dist/install.yaml
 # - GPU nodes with nvidia.com/gpu resources available
 ---
 apiVersion: v1
@@ -80,3 +81,20 @@ spec:
         timeoutSeconds: 3
         failureThreshold: 60
   serviceAccountName: grpo-controller
+---
+apiVersion: resource.k8s.io/v1
+kind: ResourceClaimTemplate
+metadata:
+  name: two-rdma
+  namespace: monarch-tests
+spec:
+  spec:
+    devices:
+      requests:
+      - name: req-mrdma
+        exactly:
+          deviceClassName: mrdma.google.com
+          # Use ExactCount to share the node's RDMA ports across pods.
+          # 'All' would allocate all ports to the first pod.
+          allocationMode: ExactCount
+          count: 2
