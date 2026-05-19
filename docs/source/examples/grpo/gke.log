@@ -1,0 +1,177 @@
+
+
+## Qwen/Qwen3.5-0.8B-Base on GKE
+README.md: 7.93kB [00:00, 11.5MB/s]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+main/train-00000-of-00001.parquet: 100%|█████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 2.31M/2.31M [00:00<00:00, 3.00MB/s]
+main/test-00000-of-00001.parquet: 100%|████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 419k/419k [00:00<00:00, 2.31MB/s]
+Generating train split: 100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 7473/7473 [00:00<00:00, 123170.40 examples/s]
+Generating test split: 100%|███████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 1319/1319 [00:00<00:00, 197779.46 examples/s]
+============================================================
+Kubernetes GRPO (Qwen/Qwen3.5-0.8B-Base)
+Config: 1 learner pod x 2 GPUs | 2 generator pods x 2 GPU(s)
+Namespace: monarch-tests | Training steps: 100
+Dataset: openai/gsm8k[train] (1000 prompts)
+Eval: openai/gsm8k[test] (512 prompts)
+RDMA Claim Template: two-rdma
+============================================================
+No cached job found at path: .monarch/job_state.pkl
+Applying current job
+Created MonarchMesh 'learner'
+Created MonarchMesh 'generator'
+Job has started, connecting to current state
+Monarch internal logs are being written to /tmp/root/monarch_log.log; execution id root_May-20_13:51_150
+Saving job to cache at .monarch/job_state.pkl
+[learner-0 anon-0<wAsatn46YTS>@tcp://172.24.3.6:26600] [0] [actor=<root>.<__main__.Learner learner{'hosts': 0/1, 'gpus': 0/1}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[learner-0 anon-0<wAsatn46YTS>@tcp://172.24.3.6:26600] [0] [transformers] [actor=<root>.<__main__.Learner learner{'hosts': 0/1, 'gpus': 0/1}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[learner-0 anon-0<wAsatn46YTS>@tcp://172.24.3.6:26600] [0] [transformers] [actor=<root>.<__main__.Learner learner{'hosts': 0/1, 'gpus': 0/1}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 1446.69it/s]
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 1/2}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 0/2}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 1/2}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 0/2}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 1/2}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 0/2}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 1/2}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 0/2}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 1/2}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 0/2}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 10555.61it/s]
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 8552.82it/s]
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 0/2}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 1/2}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 8267.29it/s]
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 8662.11it/s]
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 1/2}>] The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 0/2}>] The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 1/2}>] The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 0/2}>] The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[Baseline] acc=0.381 (195/512)
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [Generator] weight sync v0: 1.505 GB in 0.43s = 3.47 GB/s (320 buffers)
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [Generator] weight sync v0: 1.505 GB in 0.47s = 3.19 GB/s (320 buffers)
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [Generator] weight sync v0: 1.505 GB in 0.72s = 2.09 GB/s (320 buffers)
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [Generator] weight sync v0: 1.505 GB in 0.73s = 2.06 GB/s (320 buffers)
+[Step 000] loss=-0.0132 reward=0.500 gn=16.000
+
+
+
+[Step 095] loss=-0.0000 reward=1.000 gn=0.000
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [Generator] weight sync v96: 1.505 GB in 0.42s = 3.59 GB/s (320 buffers)
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [Generator] weight sync v96: 1.505 GB in 0.43s = 3.47 GB/s (320 buffers)
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [Generator] weight sync v96: 1.505 GB in 0.45s = 3.31 GB/s (320 buffers)
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [Generator] weight sync v96: 1.505 GB in 0.46s = 3.31 GB/s (320 buffers)
+[Step 096] loss=-0.0000 reward=0.000 gn=0.000
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [Generator] weight sync v97: 1.505 GB in 0.44s = 3.44 GB/s (320 buffers)
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [Generator] weight sync v97: 1.505 GB in 0.45s = 3.33 GB/s (320 buffers)
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [Generator] weight sync v97: 1.505 GB in 0.46s = 3.28 GB/s (320 buffers)
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [Generator] weight sync v97: 1.505 GB in 0.46s = 3.25 GB/s (320 buffers)
+[Step 097] loss=-0.1629 reward=0.833 gn=15.750
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [Generator] weight sync v98: 1.505 GB in 0.46s = 3.30 GB/s (320 buffers)
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [Generator] weight sync v98: 1.505 GB in 0.46s = 3.28 GB/s (320 buffers)
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [Generator] weight sync v98: 1.505 GB in 0.47s = 3.20 GB/s (320 buffers)
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [Generator] weight sync v98: 1.505 GB in 0.47s = 3.20 GB/s (320 buffers)
+[Step 098] loss=-0.0000 reward=0.000 gn=0.000
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [Generator] weight sync v99: 1.505 GB in 0.44s = 3.42 GB/s (320 buffers)
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [Generator] weight sync v99: 1.505 GB in 0.46s = 3.30 GB/s (320 buffers)
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [Generator] weight sync v99: 1.505 GB in 0.46s = 3.29 GB/s (320 buffers)
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [Generator] weight sync v99: 1.505 GB in 0.46s = 3.25 GB/s (320 buffers)
+[Step 099] loss=-0.0487 reward=0.667 gn=11.125
+[generator-1 anon-0<6AQQm4FN5Um>@tcp://172.24.3.8:26600] [2] [Generator] weight sync v100: 1.505 GB in 0.36s = 4.15 GB/s (320 buffers)
+[generator-1 anon-1<j65U53dGhe3>@tcp://172.24.3.8:26600] [3] [Generator] weight sync v100: 1.505 GB in 0.44s = 3.39 GB/s (320 buffers)
+[generator-0 anon-1<55Ex5wJo296>@tcp://172.24.3.7:26600] [1] [Generator] weight sync v100: 1.505 GB in 0.47s = 3.22 GB/s (320 buffers)
+[generator-0 anon-0<FGeBkygpo3S>@tcp://172.24.3.7:26600] [0] [Generator] weight sync v100: 1.505 GB in 0.47s = 3.18 GB/s (320 buffers)
+
+============================================================
+Training summary
+------------------------------------------------------------
+Baseline acc: 0.381 (195/512)
+Final acc:    0.625 (320/512)
+Delta:        +0.244
+============================================================
+Stopping scorer...
+Training complete.
+
+
+## Qwen/Qwen3.5-27B on GKE
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+============================================================
+Kubernetes GRPO (Qwen/Qwen3.5-0.8B-Base)
+Config: 1 learner pod x 2 GPUs | 2 generator pods x 2 GPU(s)
+Namespace: monarch-tests | Training steps: 100
+Dataset: openai/gsm8k[train] (1000 prompts)
+Eval: openai/gsm8k[test] (512 prompts)
+RDMA Claim Template: two-rdma
+============================================================
+Found cached job at path: .monarch/job_state.pkl
+Cached job cannot run this spec, removing cache
+MonarchMesh 'learner' already deleted
+MonarchMesh 'generator' already deleted
+Applying current job
+Created MonarchMesh 'learner'
+Created MonarchMesh 'generator'
+Job has started, connecting to current state
+Monarch internal logs are being written to /tmp/root/monarch_log.log; execution id root_May-20_14:30_634
+Saving job to cache at .monarch/job_state.pkl
+[learner-0 anon-0<2gg4byBB824>@tcp://172.24.3.9:26600] [0] [actor=<root>.<__main__.Learner learner{'hosts': 0/1, 'gpus': 0/1}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[learner-0 anon-0<2gg4byBB824>@tcp://172.24.3.9:26600] [0] [transformers] [actor=<root>.<__main__.Learner learner{'hosts': 0/1, 'gpus': 0/1}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[learner-0 anon-0<2gg4byBB824>@tcp://172.24.3.9:26600] [0] [transformers] [actor=<root>.<__main__.Learner learner{'hosts': 0/1, 'gpus': 0/1}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 1546.99it/s]
+[generator-1 anon-1<i7g3L33rZeB>@tcp://172.24.3.11:26600] [3] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 1/2}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[generator-0 anon-1<4733HMHE1LY>@tcp://172.24.3.10:26600] [1] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 1/2}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[generator-0 anon-0<xnRcv59Kiku>@tcp://172.24.3.10:26600] [0] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 0/2}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[generator-1 anon-0<3Ai2Vf1acvm>@tcp://172.24.3.11:26600] [2] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 0/2}>] Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+[generator-1 anon-0<3Ai2Vf1acvm>@tcp://172.24.3.11:26600] [2] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 0/2}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[generator-1 anon-1<i7g3L33rZeB>@tcp://172.24.3.11:26600] [3] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 1/2}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[generator-0 anon-1<4733HMHE1LY>@tcp://172.24.3.10:26600] [1] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 1/2}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[generator-0 anon-0<xnRcv59Kiku>@tcp://172.24.3.10:26600] [0] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 0/2}>] `torch_dtype` is deprecated! Use `dtype` instead!
+[generator-0 anon-1<4733HMHE1LY>@tcp://172.24.3.10:26600] [1] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 1/2}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+[generator-0 anon-0<xnRcv59Kiku>@tcp://172.24.3.10:26600] [0] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 0/2}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 8500.82it/s]
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 7217.83it/s]
+[generator-1 anon-1<i7g3L33rZeB>@tcp://172.24.3.11:26600] [3] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 1/2}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+[generator-1 anon-0<3Ai2Vf1acvm>@tcp://172.24.3.11:26600] [2] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 0/2}>] The fast path is not available because one of the required library is not installed. Falling back to torch implementation. To install follow https://github.com/fla-org/flash-linear-attention#installation and https://github.com/Dao-AILab/causal-conv1d
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 9373.60it/s]
+Loading weights: 100%|██████████| 320/320 [00:00<00:00, 8758.89it/s]
+[generator-0 anon-0<xnRcv59Kiku>@tcp://172.24.3.10:26600] [0] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 0/2}>] The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[generator-0 anon-1<4733HMHE1LY>@tcp://172.24.3.10:26600] [1] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 0/2, 'gpus': 1/2}>] The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[generator-1 anon-0<3Ai2Vf1acvm>@tcp://172.24.3.11:26600] [2] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 0/2}>] The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[generator-1 anon-1<i7g3L33rZeB>@tcp://172.24.3.11:26600] [3] [transformers] [actor=<root>.<__main__.Generator generator{'hosts': 1/2, 'gpus': 1/2}>] The attention mask is not set and cannot be inferred from input because pad token is same as eos token. As a consequence, you may observe unexpected behavior. Please pass your input's `attention_mask` to obtain reliable results.
+[Baseline] acc=0.381 (195/512)
+[generator-0 anon-0<xnRcv59Kiku>@tcp://172.24.3.10:26600] [0] [Generator] weight sync v0: 1.505 GB in 0.44s = 3.41 GB/s (320 buffers)
+[generator-1 anon-0<3Ai2Vf1acvm>@tcp://172.24.3.11:26600] [2] [Generator] weight sync v0: 1.505 GB in 0.44s = 3.40 GB/s (320 buffers)
+[generator-1 anon-1<i7g3L33rZeB>@tcp://172.24.3.11:26600] [3] [Generator] weight sync v0: 1.505 GB in 0.73s = 2.05 GB/s (320 buffers)
+[generator-0 anon-1<4733HMHE1LY>@tcp://172.24.3.10:26600] [1] [Generator] weight sync v0: 1.505 GB in 0.75s = 2.01 GB/s (320 buffers)
+[Step 000] loss=-0.0194 reward=0.667 gn=14.062
+
+
+
+[Step 096] loss=-0.0000 reward=0.000 gn=0.000
+[generator-0 anon-1<4733HMHE1LY>@tcp://172.24.3.10:26600] [1] [Generator] weight sync v97: 1.505 GB in 0.39s = 3.88 GB/s (320 buffers)
+[generator-0 anon-0<xnRcv59Kiku>@tcp://172.24.3.10:26600] [0] [Generator] weight sync v97: 1.505 GB in 0.39s = 3.88 GB/s (320 buffers)
+[generator-1 anon-0<3Ai2Vf1acvm>@tcp://172.24.3.11:26600] [2] [Generator] weight sync v97: 1.505 GB in 0.45s = 3.34 GB/s (320 buffers)
+[generator-1 anon-1<i7g3L33rZeB>@tcp://172.24.3.11:26600] [3] [Generator] weight sync v97: 1.505 GB in 0.45s = 3.33 GB/s (320 buffers)
+[Step 097] loss=-0.0661 reward=0.833 gn=8.750
+[generator-0 anon-0<xnRcv59Kiku>@tcp://172.24.3.10:26600] [0] [Generator] weight sync v98: 1.505 GB in 0.39s = 3.87 GB/s (320 buffers)
+[generator-0 anon-1<4733HMHE1LY>@tcp://172.24.3.10:26600] [1] [Generator] weight sync v98: 1.505 GB in 0.39s = 3.87 GB/s (320 buffers)
+[generator-1 anon-0<3Ai2Vf1acvm>@tcp://172.24.3.11:26600] [2] [Generator] weight sync v98: 1.505 GB in 0.45s = 3.32 GB/s (320 buffers)
+[generator-1 anon-1<i7g3L33rZeB>@tcp://172.24.3.11:26600] [3] [Generator] weight sync v98: 1.505 GB in 0.46s = 3.30 GB/s (320 buffers)
+[Step 098] loss=-0.0000 reward=0.000 gn=0.000
+[generator-0 anon-1<4733HMHE1LY>@tcp://172.24.3.10:26600] [1] [Generator] weight sync v99: 1.505 GB in 0.38s = 3.96 GB/s (320 buffers)
+[generator-0 anon-0<xnRcv59Kiku>@tcp://172.24.3.10:26600] [0] [Generator] weight sync v99: 1.505 GB in 0.38s = 3.96 GB/s (320 buffers)
+[generator-1 anon-1<i7g3L33rZeB>@tcp://172.24.3.11:26600] [3] [Generator] weight sync v99: 1.505 GB in 0.45s = 3.37 GB/s (320 buffers)
+[generator-1 anon-0<3Ai2Vf1acvm>@tcp://172.24.3.11:26600] [2] [Generator] weight sync v99: 1.505 GB in 0.45s = 3.32 GB/s (320 buffers)
+[Step 099] loss=-0.0000 reward=0.000 gn=0.000
+[generator-0 anon-0<xnRcv59Kiku>@tcp://172.24.3.10:26600] [0] [Generator] weight sync v100: 1.505 GB in 0.39s = 3.83 GB/s (320 buffers)
+[generator-0 anon-1<4733HMHE1LY>@tcp://172.24.3.10:26600] [1] [Generator] weight sync v100: 1.505 GB in 0.39s = 3.82 GB/s (320 buffers)
+[generator-1 anon-1<i7g3L33rZeB>@tcp://172.24.3.11:26600] [3] [Generator] weight sync v100: 1.505 GB in 0.45s = 3.36 GB/s (320 buffers)
+[generator-1 anon-0<3Ai2Vf1acvm>@tcp://172.24.3.11:26600] [2] [Generator] weight sync v100: 1.505 GB in 0.45s = 3.32 GB/s (320 buffers)
+
+============================================================
+Training summary
+------------------------------------------------------------
+Baseline acc: 0.381 (195/512)
+Final acc:    0.590 (302/512)
+Delta:        +0.209
+============================================================
+Stopping scorer...
+Training complete.

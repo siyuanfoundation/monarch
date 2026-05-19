@@ -108,6 +108,7 @@ def main(
     k8s_namespace: str = "monarch-tests",
     k8s_image: str = "ghcr.io/meta-pytorch/monarch:latest",
     buffer_type: str = "cpu_tensor",
+    rdma_template: str = "one-rdma",
 ):
     """RDMA Pingpong: transfer data between two nodes via RDMABuffer."""
     sys.stdout.reconfigure(line_buffering=True)
@@ -137,6 +138,7 @@ def main(
         job.add_mesh("workers", 2)
     elif backend == "k8s":
         from kubernetes.client import (
+            CoreV1ResourceClaim,
             V1Affinity,
             V1Container,
             V1EnvVar,
@@ -144,6 +146,7 @@ def main(
             V1LabelSelectorRequirement,
             V1PodAffinityTerm,
             V1PodAntiAffinity,
+            V1PodResourceClaim,
             V1PodSpec,
             V1PodTemplateSpec,
             V1ResourceRequirements,
@@ -155,12 +158,18 @@ def main(
         # replicas onto distinct nodes, so RDMA pingpong actually exercises
         # the cross-host fabric instead of a same-HCA loopback path.
         #
-        # NOTE: requesting "rdma/ib": 1 only guarantees each pod gets an IB
+        # NOTE: requesting RDMA resource limits or claims only guarantees each pod gets an IB
         # device; it does NOT guarantee the two pods can reach each other
         # over IB. On clusters with multiple isolated IB fabrics, add a
         # required pod_affinity term keyed on your provider's fabric label
         # so the two replicas land on the same fabric. Without it, the example will fail.
-        worker_resources = {"nvidia.com/gpu": "1", "rdma/ib": "1"}
+        worker_resources = {"nvidia.com/gpu": "1"}
+        resource_claims = [
+            V1PodResourceClaim(
+                name="rdma", resource_claim_template_name=rdma_template
+            )
+        ]
+        claims = [CoreV1ResourceClaim(name="rdma")]
         pod_template = V1PodTemplateSpec(
             spec=V1PodSpec(
                 affinity=V1Affinity(
@@ -190,9 +199,11 @@ def main(
                         resources=V1ResourceRequirements(
                             requests=worker_resources,
                             limits=worker_resources,
+                            claims=claims,
                         ),
                     ),
                 ],
+                resource_claims=resource_claims,
             ),
         )
         job = KubernetesJob(namespace=k8s_namespace)

@@ -71,9 +71,6 @@ Running the example
 
 ::
 
-    # Install the Monarch operator and CRD if not already present
-    kubectl apply -f https://raw.githubusercontent.com/meta-pytorch/monarch-kubernetes/main/operator/dist/install.yaml
-
     kubectl apply -f manifests/grpo_provision.yaml
     kubectl wait --for=condition=Ready pod/grpo-controller -n monarch-tests
     kubectl cp kubernetes_grpo.py monarch-tests/grpo-controller:/tmp/kubernetes_grpo.py
@@ -164,10 +161,12 @@ from monarch.job.kubernetes import KubernetesJob
 from monarch.rdma import RDMABuffer
 
 # %%
-# Extend supervision / spawn-idle timeouts so large model loads inside actor
-# __init__ (which block the event loop for tens of seconds) don't get killed
-# by the default 60s liveness watchdog.
+# Cross-pod RDMABuffer reads use TCP fallback by default on clusters without
+# an RDMA CNI. Also extend supervision / spawn-idle timeouts so large model
+# loads inside actor __init__ (which block the event loop for tens of
+# seconds) don't get killed by the default 60s liveness watchdog.
 monarch.configure(
+    rdma_allow_tcp_fallback=True,
     actor_spawn_max_idle="10m",
     get_proc_state_max_idle="10m",
     supervision_watchdog_timeout="10m",

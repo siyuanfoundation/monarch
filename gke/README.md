@@ -1,5 +1,12 @@
 # How to Setup RDMA on GKE
 
+## Find a zone that supports H200 GPUs with RDMA
+
+```bash
+gcloud alpha compute network-profiles list
+
+```
+
 ## Create a cluster with dataplane v2 enabled
 
 ```bash

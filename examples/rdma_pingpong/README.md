@@ -21,7 +21,7 @@ python rdma_pingpong.py \
   ```bash
   kubectl create namespace monarch-tests
   ```
-- Worker nodes that expose an `rdma/ib` device plugin and `nvidia.com/gpu` resources
+- Worker nodes that support dynamic resource allocation (DRA) via `one-rdma` claim template, and `nvidia.com/gpu` resources
 
 ### 1. Apply RBAC + driver pod
 
@@ -68,4 +68,4 @@ kubectl delete -f kubernetes_provision.yaml
 
 The k8s backend attaches a hard `requiredDuringSchedulingIgnoredDuringExecution` pod anti-affinity keyed on the operator's `monarch.pytorch.org/mesh-name=workers` label with `topologyKey: kubernetes.io/hostname`. This forces the two replicas onto distinct nodes so the pingpong actually exercises the cross-host RDMA fabric instead of a same-HCA loopback path.
 
-Requesting `rdma/ib: 1` only guarantees each pod gets an IB device; it does NOT guarantee the two pods can reach each other over IB. On clusters with multiple isolated IB fabrics, add a required `pod_affinity` term keyed on your provider's fabric label so the two replicas land on the same fabric. Without it, the example will fail.
+Requesting the `one-rdma` resource claim only guarantees each pod gets an IB device; it does NOT guarantee the two pods can reach each other over IB. On clusters with multiple isolated IB fabrics, add a required `pod_affinity` term keyed on your provider's fabric label so the two replicas land on the same fabric. Without it, the example will fail.

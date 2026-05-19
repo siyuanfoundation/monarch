@@ -1,0 +1,31 @@
+No cached job found at path: .monarch/job_state.pkl
+Applying current job
+Created MonarchMesh 'workers'
+Job has started, connecting to current state
+Monarch internal logs are being written to /tmp/root/monarch_log.log; execution id root_May-20_17:02_534
+Saving job to cache at .monarch/job_state.pkl
+RDMA Pingpong: 1000 MB x 3 iters (buffer_type=cpu_tensor)
+  [1] ping 0.217s 4.83 GB/s PASS
+  [1] pong 0.083s 12.70 GB/s PASS
+  [2] ping 0.057s 18.33 GB/s PASS
+  [2] pong 0.071s 14.86 GB/s PASS
+  [3] ping 0.057s 18.27 GB/s PASS
+  [3] pong 0.069s 15.15 GB/s PASS
+Done!
+
+
+Found cached job at path: .monarch/job_state.pkl
+Connecting to cached job
+Monarch internal logs are being written to /tmp/root/monarch_log.log; execution id root_May-20_17:40_447
+RDMA Pingpong: 1000 MB x 5 iters (buffer_type=cpu_tensor)
+  [1] ping 0.118s 8.89 GB/s PASS
+  [1] pong 0.077s 13.60 GB/s PASS
+  [2] ping 0.064s 16.27 GB/s PASS
+  [2] pong 0.065s 16.13 GB/s PASS
+  [3] ping 0.062s 16.88 GB/s PASS
+  [3] pong 0.065s 16.14 GB/s PASS
+  [4] ping 0.064s 16.47 GB/s PASS
+  [4] pong 0.064s 16.42 GB/s PASS
+  [5] ping 0.063s 16.76 GB/s PASS
+  [5] pong 0.065s 16.04 GB/s PASS
+Done!

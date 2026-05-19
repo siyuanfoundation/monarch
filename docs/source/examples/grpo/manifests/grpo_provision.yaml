@@ -10,8 +10,7 @@
 # No worker pod YAML manifests are needed.
 #
 # Prerequisites:
-# - Kubernetes cluster with Monarch operator installed:
-#   kubectl apply -f https://raw.githubusercontent.com/meta-pytorch/monarch-kubernetes/main/operator/dist/install.yaml
+# - Kubernetes cluster with Monarch operator installed
 # - GPU nodes with nvidia.com/gpu resources available
 ---
 apiVersion: v1
