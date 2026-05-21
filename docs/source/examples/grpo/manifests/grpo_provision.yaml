@@ -36,6 +36,9 @@ rules:
   - apiGroups: ["monarch.pytorch.org"]
     resources: ["monarchmeshes"]
     verbs: ["create", "get", "patch", "delete"]
+  - apiGroups: ["resource.k8s.io"]
+    resources: ["resourceclaimtemplates"]
+    verbs: ["create", "get", "patch", "delete"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

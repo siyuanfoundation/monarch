@@ -124,16 +124,14 @@ train).
 Running the example on GKE
 -------------------
 
-Follow the instructions in `manifests/gke/README.md` to create a GKE cluster with RDMA enabled.
+Follow the instructions in [Allocate network resources by using GKE managed DRANET](https://docs.cloud.google.com/kubernetes-engine/docs/how-to/allocate-network-resources-dra) to create a GKE cluster with RDMA enabled node pool.
 
 ::
 
     kubectl apply -f manifests/grpo_provision.yaml
-    kubectl apply -f manifests/gke/grpo_mesh.yaml
     kubectl wait --for=condition=Ready pod/grpo-controller -n monarch-tests
     kubectl cp kubernetes_grpo.py monarch-tests/grpo-controller:/tmp/kubernetes_grpo.py
-    kubectl exec -it grpo-controller -n monarch-tests -- python /tmp/kubernetes_grpo.py --no-provision --num_generator_hosts 2 --gpus_per_generator 3
-    kubectl delete -f manifests/gke/grpo_mesh.yaml
+    kubectl exec -it grpo-controller -n monarch-tests -- python /tmp/kubernetes_grpo.py --dranet_device_class_name mrdma.google.com
     kubectl delete -f manifests/grpo_provision.yaml
 
 """
@@ -158,21 +156,131 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from kubernetes.client import (
+    CoreV1ResourceClaim,
     V1Container,
+    V1DeviceClaim,
+    V1DeviceRequest,
     V1EmptyDirVolumeSource,
     V1EnvVar,
+    V1ExactDeviceRequest,
+    V1ObjectMeta,
+    V1PodResourceClaim,
     V1PodSpec,
     V1PodTemplateSpec,
     V1Probe,
+    V1ResourceClaimSpec,
+    V1ResourceClaimTemplate,
+    V1ResourceClaimTemplateSpec,
     V1ResourceRequirements,
     V1TCPSocketAction,
     V1Volume,
     V1VolumeMount,
+    ResourceV1Api,
 )
+from kubernetes.client.rest import ApiException
 from monarch._src.job.kubernetes import _WORKER_BOOTSTRAP_SCRIPT
 from monarch.actor import Actor, current_rank, current_size, endpoint
 from monarch.job.kubernetes import KubernetesJob
 from monarch.rdma import RDMABuffer
+
+
+def create_rdma_claim_template(
+    name: str,
+    namespace: str,
+    count: int,
+    device_class_name: str,
+) -> None:
+    """Create a ResourceClaimTemplate for RDMA on GKE if it doesn't exist."""
+    from kubernetes import config
+
+    try:
+        config.load_incluster_config()
+    except config.ConfigException as e:
+        raise RuntimeError(
+            "Failed to load in-cluster Kubernetes config. "
+            "Must run inside a Kubernetes cluster to manage ResourceClaimTemplates."
+        ) from e
+
+    api = ResourceV1Api()
+
+    exactly_request = V1ExactDeviceRequest(
+        device_class_name=device_class_name,
+        allocation_mode="ExactCount",
+        count=count,
+    )
+
+    device_request = V1DeviceRequest(
+        name="req-mrdma",
+        exactly=exactly_request,
+    )
+
+    device_claim = V1DeviceClaim(
+        requests=[device_request],
+    )
+
+    resource_claim_spec = V1ResourceClaimSpec(
+        devices=device_claim,
+    )
+
+    claim_template_spec = V1ResourceClaimTemplateSpec(
+        spec=resource_claim_spec,
+    )
+
+    body = V1ResourceClaimTemplate(
+        api_version="resource.k8s.io/v1",
+        kind="ResourceClaimTemplate",
+        metadata=V1ObjectMeta(
+            name=name,
+            namespace=namespace,
+        ),
+        spec=claim_template_spec,
+    )
+
+    try:
+        api.create_namespaced_resource_claim_template(
+            namespace=namespace,
+            body=body,
+        )
+        print(f"Created ResourceClaimTemplate '{name}' with count {count} (class {device_class_name})", flush=True)
+    except ApiException as e:
+        if e.status == 409:
+            try:
+                api.patch_namespaced_resource_claim_template(
+                    name=name,
+                    namespace=namespace,
+                    body=body,
+                )
+                print(f"ResourceClaimTemplate '{name}' already exists, patched", flush=True)
+            except ApiException as patch_err:
+                print(f"Failed to patch ResourceClaimTemplate '{name}': {patch_err}", flush=True)
+                raise
+        else:
+            print(f"Failed to create ResourceClaimTemplate '{name}': {e}", flush=True)
+            raise
+
+
+def delete_rdma_claim_template(
+    name: str,
+    namespace: str,
+) -> None:
+    """Delete a ResourceClaimTemplate for RDMA on GKE."""
+    from kubernetes import config
+    try:
+        config.load_incluster_config()
+    except config.ConfigException:
+        return
+
+    api = ResourceV1Api()
+    try:
+        api.delete_namespaced_resource_claim_template(
+            name=name,
+            namespace=namespace,
+        )
+        print(f"Deleted ResourceClaimTemplate '{name}'", flush=True)
+    except ApiException as e:
+        if e.status != 404:
+            print(f"[cleanup] Failed to delete ResourceClaimTemplate '{name}': {e}", flush=True)
+
 
 # %%
 # Cross-pod RDMABuffer reads use TCP fallback by default on clusters without
@@ -886,7 +994,7 @@ PIP_INSTALL = textwrap.dedent("""\
 """)
 
 
-def build_pod_template(gpus: int) -> V1PodTemplateSpec:
+def build_pod_template(gpus: int, claim_template_name: Optional[str] = None) -> V1PodTemplateSpec:
     """Shared pod template for learner and generator meshes.
 
     Prepends a pip-install prefix to the Monarch worker bootstrap so that
@@ -919,9 +1027,11 @@ def build_pod_template(gpus: int) -> V1PodTemplateSpec:
     ]
     if gpus > 0:
         gpu_resources = {"nvidia.com/gpu": str(gpus)}
+        claims = [CoreV1ResourceClaim(name="rdma")] if claim_template_name else None
         resources = V1ResourceRequirements(
             limits=gpu_resources,
             requests=gpu_resources,
+            claims=claims,
         )
         env.insert(
             1,
@@ -965,8 +1075,15 @@ def build_pod_template(gpus: int) -> V1PodTemplateSpec:
                     ),
                 )
             ],
+            resource_claims=[
+                V1PodResourceClaim(
+                    name="rdma",
+                    resource_claim_template_name=claim_template_name,
+                )
+            ] if claim_template_name else None,
         ),
     )
+
 
 
 # %%
@@ -1008,9 +1125,7 @@ async def main(
     dataset_split: str,
     num_prompts: int,
     eval_size: int,
-    learner_mesh_name: str,
-    generator_mesh_name: str,
-    provision: bool,
+    dranet_device_class_name: Optional[str],
 ) -> None:
     """Run GRPO fine-tuning across the learner and generator meshes."""
     prompts = load_gsm8k_prompts(split=dataset_split, num_prompts=num_prompts)
@@ -1026,35 +1141,44 @@ async def main(
     print(f"Eval: openai/gsm8k[test] ({len(eval_prompts)} prompts)")
     print("=" * 60)
 
+    learner_mesh_name = "learner"
+    generator_mesh_name = "generator"
+    learner_claim_name = f"{learner_mesh_name}-rdma"
+    generator_claim_name = f"{generator_mesh_name}-rdma"
+
+    if dranet_device_class_name:
+        create_rdma_claim_template(
+            name=learner_claim_name,
+            namespace=namespace,
+            count=2,
+            device_class_name=dranet_device_class_name,
+        )
+        create_rdma_claim_template(
+            name=generator_claim_name,
+            namespace=namespace,
+            count=gpus_per_generator,
+            device_class_name=dranet_device_class_name,
+        )
+
     # 600s timeout lets the meshes finish cold-start pip install + model
     # download before state() gives up.
     k8s_job = KubernetesJob(namespace=namespace, timeout=600)
-    if provision:
-        # Learner pod requests 2 GPUs; ``device_map="auto"`` inside the actor
-        # spreads the trainable policy across both. ``spawn_procs({"gpus": 1})``
-        # below still spawns a single learner proc that sees both GPUs in its
-        # CUDA namespace. To fine-tune a larger base model, bump this to 4
-        # (e.g. for a 4B-parameter policy, the static memory of params + bf16
-        # gradients + fp32 AdamW state alone is ~48 GB, requiring 4 x 22 GB GPUs).
-        k8s_job.add_mesh(
-            learner_mesh_name,
-            num_replicas=1,
-            pod_template=build_pod_template(gpus=2),
-        )
-        k8s_job.add_mesh(
-            generator_mesh_name,
-            num_replicas=num_generator_hosts,
-            pod_template=build_pod_template(gpus=gpus_per_generator),
-        )
-    else:
-        k8s_job.add_mesh(
-            learner_mesh_name,
-            num_replicas=1,
-        )
-        k8s_job.add_mesh(
-            generator_mesh_name,
-            num_replicas=num_generator_hosts,
-        )
+    k8s_job.add_mesh(
+        learner_mesh_name,
+        num_replicas=1,
+        pod_template=build_pod_template(
+            gpus=2,
+            claim_template_name=learner_claim_name if dranet_device_class_name else None,
+        ),
+    )
+    k8s_job.add_mesh(
+        generator_mesh_name,
+        num_replicas=num_generator_hosts,
+        pod_template=build_pod_template(
+            gpus=gpus_per_generator,
+            claim_template_name=generator_claim_name if dranet_device_class_name else None,
+        ),
+    )
 
     learner_mesh = None
     gen_mesh = None
@@ -1146,9 +1270,12 @@ async def main(
                 gen_mesh.stop().get()
             except Exception as e:
                 print(f"[cleanup] gen_mesh.stop() failed: {e}")
-        # Unconditional so MonarchMesh CRDs and pods are always torn down.
-        if provision:
-            k8s_job.kill()
+        
+        k8s_job.kill()
+        if dranet_device_class_name:
+            delete_rdma_claim_template(learner_claim_name, namespace)
+            delete_rdma_claim_template(generator_claim_name, namespace)
+
 
 
 # %%
@@ -1208,22 +1335,10 @@ if __name__ == "__main__":
         help="Number of held-out GSM8K test prompts used for eval.",
     )
     parser.add_argument(
-        "--learner_mesh_name",
+        "--dranet_device_class_name",
         type=str,
-        default="learner",
-        help="Name of the learner MonarchMesh CRD",
-    )
-    parser.add_argument(
-        "--generator_mesh_name",
-        type=str,
-        default="generator",
-        help="Name of the generator MonarchMesh CRD",
-    )
-    parser.add_argument(
-        "--no-provision",
-        action="store_false",
-        dest="provision",
-        help="Disable provisioning of new worker and generator meshes and use existing ones (YAML manifests required).",
+        default=None,
+        help="Enable GKE Networking DRA for RDMA by specifying the device class name (e.g. mrdma.google.com).",
     )
     args = parser.parse_args()
     asyncio.run(
@@ -1236,8 +1351,6 @@ if __name__ == "__main__":
             dataset_split=args.dataset_split,
             num_prompts=args.num_prompts,
             eval_size=args.eval_size,
-            learner_mesh_name=args.learner_mesh_name,
-            generator_mesh_name=args.generator_mesh_name,
-            provision=args.provision,
+            dranet_device_class_name=args.dranet_device_class_name,
         )
     )
